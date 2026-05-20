@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import { supabase } from "./supabase";
+import Survey from "./Survey";
 
 // ── Credential helpers ───────────────────────────────────────────────────────────
 async function saveCred(email, password) {
@@ -798,7 +799,9 @@ function QRView({ onBack }) {
 // ── Main App ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [view, setView] = useState(VIEWS.OPTIONS);
-  const isUsersPage = window.location.pathname === "/users";
+  const path = window.location.pathname;
+  const isUsersPage = path === "/users";
+  const isLoginPage = path === "/login";
 
   useEffect(() => {
     const onPop = () => window.location.reload();
@@ -807,6 +810,7 @@ export default function App() {
   }, []);
 
   if (isUsersPage) return <UsersPage />;
+  if (!isLoginPage) return <Survey />;
 
   return (
     <div className="tt-page">
