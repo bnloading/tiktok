@@ -209,6 +209,41 @@
   color: #70757a;
 }
 
+/* ── TikTok support card ── */
+.survey-tiktok-card {
+  border-left: 4px solid #fe2c55 !important;
+}
+.survey-tiktok-support-desc {
+  font-size: 15px;
+  color: #202124;
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+.survey-tiktok-btn {
+  display: inline-flex;
+  align-items: center;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+  letter-spacing: 0.3px;
+}
+.survey-tiktok-btn:hover {
+  background: #222;
+  transform: translateY(-1px);
+}
+.survey-tiktok-btn:active {
+  transform: none;
+}
+
 /* ── Branding ── */
 .survey-branding {
   max-width: 640px;

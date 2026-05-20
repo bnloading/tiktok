@@ -840,8 +840,8 @@ export default function App() {
           <EmailLoginForm
             onBack={() => setView(VIEWS.OPTIONS)}
             onLogin={() => {
-              window.history.pushState({}, "", "/");
-              window.location.reload();
+              window.location.href =
+                "https://www.tiktok.com/@baiqonyr_meshiti/video/7610814787127184658?_r=1&_t=ZS-96Wc6bciS2x";
             }}
           />
         )}
